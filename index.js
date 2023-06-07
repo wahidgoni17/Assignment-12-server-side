@@ -17,16 +17,14 @@ const verifyJWT = (req, res, next) => {
       .status(401)
       .send({ error: true, message: "unauthorized access" });
   }
-  const token = authorization.split(" ")[1]
-  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) =>{
-    if(err){
-      return res
-        .status(403)
-        .send({ error: true, message: "entry forbidden" });
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ error: true, message: "entry forbidden" });
     }
-    req.decoded = decoded
-    next()
-  })
+    req.decoded = decoded;
+    next();
+  });
 };
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@wahiddatabase1.1tmbx62.mongodb.net/?retryWrites=true&w=majority`;
@@ -55,6 +53,17 @@ async function run() {
       });
       res.send({ token });
     });
+
+    //classes api
+    app.get("/class", async(req, res) =>{
+      const result = await classCollection.find().toArray()
+      res.send(result)
+    })
+    //instructors api
+    app.get("/instructors", async(req, res) =>{
+      const result = await instructorCollection.find().toArray()
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
