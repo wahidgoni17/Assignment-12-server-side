@@ -45,6 +45,17 @@ async function run() {
     const usersCollection = client.db("campDb").collection("users");
     const classCollection = client.db("campDb").collection("classes");
     const instructorCollection = client.db("campDb").collection("instructors");
+    // verify admin
+    const verifyAdmin = async(req, res, next) =>{
+      const email = req.decoded.email
+      const query = {email: email}
+      const user = await usersCollection.findOne(query)
+      if(user?.role !== "admin"){
+        return res.status(403).send({error: true, message: "only for admin"})
+      }
+      next()
+    }
+
     // web access token api
     app.post("/jwt", (req, res) => {
       const user = req.body;
@@ -53,6 +64,18 @@ async function run() {
       });
       res.send({ token });
     });
+
+    // users api
+    app.post("/users", async(req, res)=>{
+      const user = req.body
+      const query = {email : user.email}
+      const existingUser = await usersCollection.findOne(query)
+      if(existingUser){
+        return res.send({message: "user already exists"})
+      }
+      const result = await usersCollection.insertOne(user)
+      res.send(result)
+    })
 
     //classes api
     app.get("/class", async(req, res) =>{
