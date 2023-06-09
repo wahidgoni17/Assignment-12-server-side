@@ -149,7 +149,24 @@ async function run() {
       res.send(result)
     })
     // carts api
-    app.post("/carts", async(req, res) =>{
+    app.get("/classCart", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "unauthorized access" });
+      }
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      console.log(result)
+      res.send(result);
+    });
+
+    app.post("/classCart", async(req, res) =>{
       const item = req.body
       const result = await cartCollection.insertOne(item)
       res.send(result)
