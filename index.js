@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -55,6 +55,15 @@ async function run() {
       }
       next()
     }
+    const verifyInstructor = async(req, res, next) =>{
+      const email = req.decoded.email
+      const query = {email: email}
+      const user = await usersCollection.findOne(query)
+      if(user?.role !== "instructor"){
+        return res.status(403).send({error: true, message: "only for Instructor"})
+      }
+      next()
+    }
 
     // web access token api
     app.post("/jwt", (req, res) => {
@@ -66,6 +75,10 @@ async function run() {
     });
 
     // users api
+    app.get("/users", verifyJWT, verifyAdmin, async(req, res)=>{
+      const result = await usersCollection.find().toArray()
+      res.send(result)
+    })
     app.post("/users", async(req, res)=>{
       const user = req.body
       const query = {email : user.email}
@@ -75,6 +88,58 @@ async function run() {
       }
       const result = await usersCollection.insertOne(user)
       res.send(result)
+    })
+    app.delete("/users/:id", verifyJWT, verifyAdmin, async(req, res) =>{
+      const id = req.params.id
+      const query = {_id : new ObjectId(id)}
+      const result = await usersCollection.deleteOne(query)
+      res.send(result)
+    })
+    // Admin api
+    app.patch('/users/admin/:id', verifyJWT, verifyAdmin, async(req, res) =>{
+      const id = req.params.id
+      const filter = {_id: new ObjectId(id)}
+      const updateToAdmin = {
+        $set: {
+          role: "admin"
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updateToAdmin)
+      res.send(result)
+    })
+    app.get('/users/admin/:email', verifyJWT, async(req,res)=>{
+      const email = req.params.email
+      if(req.decoded.email !== email){
+        res.send({admin: false})
+      }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === "admin" };
+      res.send(result);
+    })
+
+    // instructor api
+    app.patch('/users/instructor/:id', verifyJWT, verifyAdmin, async(req, res) =>{
+      const id = req.params.id
+      const filter = {_id: new ObjectId(id)}
+      const updateToInstructor = {
+        $set: {
+          role: "instructor"
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updateToInstructor)
+      res.send(result)
+    })
+
+    app.get('/users/instructor/:email', verifyJWT, async(req,res)=>{
+      const email = req.params.email
+      if(req.decoded.email !== email){
+        res.send({instructor: false})
+      }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const result = { instructor: user?.role === "instructor" };
+      res.send(result);
     })
 
     //classes api
