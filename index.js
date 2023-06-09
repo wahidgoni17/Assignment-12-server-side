@@ -44,6 +44,7 @@ async function run() {
     await client.connect();
     const usersCollection = client.db("campDb").collection("users");
     const classCollection = client.db("campDb").collection("classes");
+    const cartCollection = client.db("campDb").collection("carts")
     const instructorCollection = client.db("campDb").collection("instructors");
     // verify admin
     const verifyAdmin = async(req, res, next) =>{
@@ -147,6 +148,13 @@ async function run() {
       const result = await classCollection.find().toArray()
       res.send(result)
     })
+    // carts api
+    app.post("/carts", async(req, res) =>{
+      const item = req.body
+      const result = await cartCollection.insertOne(item)
+      res.send(result)
+    })
+
     //instructors api
     app.get("/instructors", async(req, res) =>{
       const result = await instructorCollection.find().toArray()
