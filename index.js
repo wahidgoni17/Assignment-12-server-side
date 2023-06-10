@@ -148,6 +148,30 @@ async function run() {
       const result = await classCollection.find().toArray()
       res.send(result)
     })
+
+    app.get("/class", verifyJWT, verifyInstructor, async (req, res) => {
+      const email = req.query.email
+      console.log(email)
+      if(!email){
+        res.send({})
+      }
+      const decodedEmail = req.decoded.email;
+      console.log(decodedEmail)
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
+      }
+      const query = {email : email}
+      const result = await classCollection.find(query).toArray()
+      res.send(result)
+    });
+    
+    app.post('/class', async(req, res) =>{
+      const classData = req.body
+      const result = await classCollection.insertOne(classData)
+      res.send(result)
+    })
     // carts api
     app.get("/classCart", verifyJWT, async(req, res) =>{
       const email = req.query.email
@@ -168,6 +192,12 @@ async function run() {
     app.post("/classCart", async(req, res) =>{
       const item = req.body
       const result = await cartCollection.insertOne(item)
+      res.send(result)
+    })
+    app.delete("/classCart/:id", async(req, res) =>{
+      const id = req.params.id
+      const query = {_id : new ObjectId(id)}
+      const result = await cartCollection.deleteOne(query)
       res.send(result)
     })
 
