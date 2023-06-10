@@ -161,23 +161,6 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/class", verifyJWT, verifyInstructor, async (req, res) => {
-      const email = req.query.email;
-      console.log(email);
-      if (!email) {
-        res.send({});
-      }
-      const decodedEmail = req.decoded.email;
-      if (email !== decodedEmail) {
-        return res
-          .status(403)
-          .send({ error: true, message: "forbidden access" });
-      }
-      const query = { email: email };
-      const result = await classCollection.find(query).toArray();
-      res.send(result);
-    });
-
     app.post("/class", async (req, res) => {
       const classData = req.body;
       const result = await classCollection.insertOne(classData);
@@ -238,6 +221,16 @@ async function run() {
       });
     });
     // payment api
+    app.get('/payments', verifyJWT, async(req, res)=>{
+      const query = {}
+      const options = {
+        sort: {
+          "date" : -1
+        }
+      }
+      const result = await paymentCollection.find(query, options).toArray()
+      res.send(result)
+    })
     app.post("/payments", verifyJWT, async (req, res) => {
       const payment = req.body;
       const insertResult = await paymentCollection.insertOne(payment);
