@@ -149,22 +149,21 @@ async function run() {
       res.send(result)
     })
     // carts api
-    app.get("/classCart", verifyJWT, async (req, res) => {
-      const email = req.query.email;
-      if (!email) {
-        res.send([]);
+    app.get("/classCart", verifyJWT, async(req, res) =>{
+      const email = req.query.email
+      if(!email){
+        res.send({})
       }
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
         return res
           .status(403)
-          .send({ error: true, message: "unauthorized access" });
+          .send({ error: true, message: "forbidden access" });
       }
-      const query = { email: email };
-      const result = await cartCollection.find(query).toArray();
-      console.log(result)
-      res.send(result);
-    });
+      const query = {email : email}
+      const result = await cartCollection.find(query).toArray()
+      res.send(result)
+    })
 
     app.post("/classCart", async(req, res) =>{
       const item = req.body
