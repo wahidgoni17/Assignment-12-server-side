@@ -166,6 +166,17 @@ async function run() {
       const result = await classCollection.insertOne(classData);
       res.send(result);
     });
+    app.patch("/class/approve/:id" , verifyJWT, verifyAdmin, async(req, res) =>{
+      const id = req.params.id
+      const filter = {_id : new ObjectId(id)}
+      const updateStatus = {
+        $set : {
+          status : "approved"
+        }
+      }
+      const result = await classCollection.updateOne(filter, updateStatus)
+      res.send(result)
+    })
     // carts api
     app.get("/classCart", verifyJWT, async (req, res) => {
       const email = req.query.email;
